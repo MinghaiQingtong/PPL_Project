@@ -14,6 +14,14 @@
 
 namespace TangtongPPL{
 
+    bool PrintStringVector(vector<string> vs){
+        std::cout<<"Print String Vector"<<std::endl;
+        for(int i = 0 ; i < vs.size() ; i++){
+            std::cout<<vs[i]<<std::endl;
+        }
+        std::cout<<"End Print."<<std::endl;
+    }
+
 
     void DeleteBlanks(string &constraints){
         for(int i = 0 ; i < constraints.length() ; ){
@@ -272,7 +280,7 @@ namespace TangtongPPL{
         There are taking this strategy.
     
      */
-    string ConstructOmega(string gs_coeffs,string x,bool simply){
+    string ConstructGeneratorsConstraints(string gs_coeffs,string x,bool simply){
         vector<string> v_gs_coeffs = DivideConstraints(gs_coeffs,"(C)");
         vector<string> v_x = DivideConstraints(x,',');
         int p_pos = 0;
@@ -299,6 +307,48 @@ namespace TangtongPPL{
         f.append(" >= ei };");
         //std::cout<<f<<std::endl;
         return f;
+    }
+
+    string ConstructGeneratorsConstraints(string gs_coeffs, string variables, int cur_times){
+        vector<string> v_gs_coeffs = DivideConstraints(gs_coeffs,"(C)");
+        vector<string> v_x = DivideConstraints(variables,',');
+        vector<string> v_d_x;
+        for(int i = 0; i < v_x.size(); i++){
+            v_d_x.push_back("d" + v_x[i]);
+        }
+        vector<string> f_coeff;
+        string ret1,ret2;
+        for(int i = 0; i < v_gs_coeffs.size(); i++){
+            vector<string> v_gs_coe = DivideConstraints(v_gs_coeffs[i],' ');
+            if(v_gs_coe[v_gs_coe.size() - 1] == "P"){
+                for(int j = 0; j < v_x.size(); j++){
+                    ret1 += "+(" + v_gs_coe[j+3] + "/" + v_gs_coe[2] + "*" + v_x[j] +")";
+                }
+                ret1 += ">=k" + to_string(cur_times) + ",";
+                for(int j = 0; j < v_d_x.size(); j++){
+                    ret2 += "+(" + v_gs_coe[j+3] + "/" + v_gs_coe[2] + "*" + v_d_x[j] +")";
+                }
+                ret2 += ">=0,";
+            }
+            if(v_gs_coe[v_gs_coe.size() - 1] == "R"){
+                for(int j = 0; j < v_x.size(); j++){
+                    ret1 += "+(" + v_gs_coe[j+3] + "*" + v_x[j] + ")";
+                }
+                ret1 += ">=0,";
+                for(int j = 0; j < v_x.size(); j++){
+                    ret2 += "+(" + v_gs_coe[j+3] + "*" + v_d_x[j] + ")";
+                }
+                ret2 += ">=0,";
+            }
+        }
+        
+
+
+        ret1.erase(ret1.size()-1);
+        ret1 = "GS1 := {" + ret1 + "};";
+        ret2.erase(ret2.size()-1);
+        ret2 = "GS2 := {" + ret2 + "};";
+        return ret1+ret2;
     }
     
     vector<string> VectorPlus(vector<string> a,vector<string> b,int n){//a = a + n*b
@@ -333,49 +383,6 @@ namespace TangtongPPL{
         return true;
     }
 
-    string ConstructOmega(string gs_coeffs,string x){
-        vector<string> v_gs_coeffs = DivideConstraints(gs_coeffs,"(C)");
-        vector<string> v_x = DivideConstraints(x,',');
-        vector<string> f_coeff;
-        bool isPointFound = false;
-        srand((int)time(0));
-        for(int i = 0 ; i < v_gs_coeffs.size() ; i++){
-            vector<string> v_gs_coe = DivideConstraints(v_gs_coeffs[i],' ');
-            // for(int j = 0 ; j < v_gs_coe.size() ; j ++){
-            //     std::cout<<v_gs_coe[j]<<"-";
-            // }//std::cout<<std::endl;
-            if(v_gs_coe[v_gs_coe.size() - 1] == "P" && !isPointFound){
-                f_coeff = v_gs_coe;
-                isPointFound = true;
-                i = -1;
-            }
-
-            if( (v_gs_coe[v_gs_coe.size() - 1] == "R" || v_gs_coe[v_gs_coe.size() - 1] == "L") && isPointFound ){
-                int n = rand()%10;
-                if(v_gs_coe[v_gs_coe.size() - 1] == "R"){
-                    n = rand()%5;
-                }else if(v_gs_coe[v_gs_coe.size() - 1] == "L"){
-                    n = rand()%10-5;
-                }
-                f_coeff = VectorPlus(f_coeff,v_gs_coe,n);//std::cout<<"|+|"<<std::endl;
-            }
-
-        }
-        if(v_x.size() != stoi(f_coeff[1])-1){
-            std::cout<<"Input x ERROR!"<<std::endl;
-            return NULL;
-        }
-        string f = "f:={";
-        for(int i = 3 ; i < 3 + v_x.size() ; i++){
-            if(f_coeff[i][0] != '-'){
-                f.append("+");
-            }
-            f.append(f_coeff[i]+"/"+f_coeff[2]+"*"+v_x[i-3]);
-        }
-        f.append(" >= ei };");
-        //std::cout<<f<<std::endl;
-        return f;
-    }
     
     string ConstructRandomEi(){
         srand((int)time(0));
@@ -384,44 +391,41 @@ namespace TangtongPPL{
         return ki;
     }
     
-    string AnalyzeFarkasRet(const char* c){
-        string ret = c;
-        string ch = "'&and'";
-        if(ret.find(ch) == string::npos){
+    string AnalyzeFarkasRet(string ret){
+        int pos = 0;
+        if((pos = ret.find("`&and`")) == string::npos){
             return ret;//only one ret,return
         }else{
-            for(int i = ret.length() - 1 ; i >= ch.length() - 1 ; i--){
-                string subs = ret.substr(i - ch.length() + 1 , ch.length());
-                if(subs == ch){
-                    for(int j = i + 1 ; j < ret.length() ; j++){
-                        if(ret[j] == ')'){
-                            return ret.substr(i + 2, j - i - 2);
-                        }
-                    }
-                }
-            }
+            return "ret:=["+ret.substr(ret.find("(") + 1, ret.find(")") - ret.find("(") - 1)+"]";
         }
-        return "";
+
+        return ret;
     }
 
 
 /*
-    Construct [x,y,x0,y0,d_x,d_y,d_x0,d_y0] from [x,y]
+    Construct [x,y,x0,y0,dx,dy,dx1,dy1] from [x,y]
+    if k = -1 return x,y
+    if k = 0 return x,y,x1,y1
+    if k = 1 return x,y,x1,y1,dx,dy,dx1,dy1
  */
     string ConstructAllVariablesFromVariables(vector<string> variables,int k){
         vector<string> AllVariables;
         for(int i = 0 ; i < variables.size() ; i++){
             AllVariables.push_back(variables[i]);
         }
-        for(int i = 0 ; i < variables.size() ; i++){
-            AllVariables.push_back(variables[i]+"1");
-        }
-        if(k == 1){
+        if(k >= 0){
             for(int i = 0 ; i < variables.size() ; i++){
-                AllVariables.push_back("d_"+variables[i]);
+                AllVariables.push_back(variables[i]+"1");
+            }
+        }
+        
+        if(k >= 1){
+            for(int i = 0 ; i < variables.size() ; i++){
+                AllVariables.push_back("d"+variables[i]);
             }
             for(int i = 0 ; i < variables.size() ; i++){
-                AllVariables.push_back("d_"+variables[i]+"1");
+                AllVariables.push_back("d"+variables[i]+"1");
             }
         }
 
@@ -429,7 +433,7 @@ namespace TangtongPPL{
 
         for(int i = 0; i < AllVariables.size(); i++){
             if(i != AllVariables.size()-1){
-                ret += AllVariables[i] + ", ";
+                ret += AllVariables[i] + ",";
             }else{
                 ret += AllVariables[i];
             }
@@ -439,7 +443,7 @@ namespace TangtongPPL{
     }
 
 /*
-    x = x - y => x0 = x - y
+    x = x - y => x1 = x - y
  */
     vector<string> ModifyVariables(vector<string> Cons, vector<string> variables){
 
@@ -469,7 +473,7 @@ namespace TangtongPPL{
         return ret;
     }
 /*
-    construct A * dx + A1 * dx0 <= 0
+    construct A * dx + A1 * dx1 <= 0
  */
     string ConstructDeltaPart2(vector<string> Cons, vector<string> variables){
 
@@ -573,6 +577,7 @@ namespace TangtongPPL{
         // std::cout<<Omega<<std::endl;
         return Omega;
     }
+
 
 }
 #endif
