@@ -46,7 +46,7 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
     const char *FarkasRetIsFalse = "{}";
     int cur_times = 1;
     const int ENDTIMES = 3;
-    string k = "10000000000";
+    string k = "-10";
     while(cur_times <= ENDTIMES){
         std::cout<<"------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"The "<<cur_times<<"th Iteration..."<<std::endl;
@@ -59,10 +59,13 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
         }
         
         string temp_str = TangtongPPL::AnalyzeFarkasRet(mapleresult);
-        // std::cout<<"temp_str:"<<temp_str<<endl;
+         std::cout<<"temp_str:"<<temp_str<<endl;
         
         generators = TangtongPPL::InsertConstraints(temp_str, TangtongPPL::ConstructAllVariablesFromVariables(variables,-1));
         // std::cout<<"generators:"<<generators<<std::endl;
+        if(generators.empty()){
+            return "ERROR.";
+        }
         GS = TangtongPPL::ConstructGeneratorsConstraints(generators,TangtongPPL::ConstructAllVariablesFromVariables(variables,-1),k);std::cout<<GS<<std::endl;
         
         processMapleStatement(kv,maplestatement,GS);std::cout<<mapleresult<<std::endl;
