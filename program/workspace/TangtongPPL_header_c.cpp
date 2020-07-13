@@ -30,9 +30,9 @@ namespace TangtongPPL{
             else
                 i++;
         }
-        if(constraints[0] == '[')
+        if(constraints[0] == '{')
             constraints.erase(0,1);
-        if(constraints[constraints.length() - 1] == ']')
+        if(constraints[constraints.length() - 1] == '}')
             constraints.erase(constraints.length() - 1 , 1);
     }
     vector<string> DivideConstraints(string constraints,char split){
@@ -93,11 +93,45 @@ namespace TangtongPPL{
         }
         return paras;
     }
+
+    string changeSymbol(string str, string sym1, string sym2){
+        while(str.find(sym1) != str.npos){
+            str.replace(str.find(sym1), sym1.size(), sym2);
+            // cout<<str<<endl;
+        }
+        // cout<<"end"<<endl;
+        return str;
+    }
+
+
     /*
         Reverse constraints . Let 0 <= c[1] + c[2] + 3 become -c[1] - c[2] - 3 <= 0 standard format.
      */
     void AdjustCons(vector<string> &cons){
+        // std::cout<<"Start AdjustCons():"<<cons.size()<<std::endl;
+        // PrintStringVector(cons);
         for(int i = 0 ; i < cons.size() ; i++){
+            // std::cout<<"111";
+            // std::cout<<"AdjustCons:"<<cons[i]<<" ";
+            //when c[1]=0 tranform it into c[1]<=0 and -c[1]<=-0
+            string temp_str = cons[i];
+            if(cons[i].find("<") == cons[i].npos){
+                cons[i].insert(cons[i].find("="), "<");
+                temp_str.insert(temp_str.find("="), "<");
+                if(temp_str[0] != '-' && temp_str[0] != '0'){
+                    temp_str.insert(0, "+");
+                }
+                if(temp_str[temp_str.find("=") + 1] != '-' && temp_str[temp_str.find("=") + 1] != '0'){
+                    temp_str.insert(temp_str.find("=")+1, "+");
+                }
+                temp_str = changeSymbol(temp_str, "+", "$");
+                temp_str = changeSymbol(temp_str, "-", "%");
+                temp_str = changeSymbol(temp_str, "$", "-");
+                temp_str = changeSymbol(temp_str, "%", "+");
+              //  std::cout<<"temp_str:"<<temp_str<<std::endl;
+                cons.push_back(temp_str);
+
+            }
             int e_pos = 0;
             while(cons[i][e_pos] != '=')
                 e_pos++;
@@ -134,6 +168,7 @@ namespace TangtongPPL{
                 }
             }
         }
+        // std::cout<<"222"<<std::endl;
     }
     Variable A(0) , B(1) , C(2) , D(3) , E(4) , F(5) , G(6) , H(7) , I(8) , J(9);
     Constraint_System cs;
@@ -145,15 +180,16 @@ namespace TangtongPPL{
         }
         if(para_size == 1){
         
-            cs.insert(mul*c_e[0]/c_divisor[0]*A + mul*c_e[1]/c_divisor[1] <= 0);
+            cs.insert(mul/c_divisor[0]*c_e[0]*A + mul/c_divisor[1]*c_e[1] <= 0);
         
         }else if(para_size == 2){
-            
-            cs.insert(mul*c_e[0]/c_divisor[0]*A + mul*c_e[1]/c_divisor[1]*B + mul*c_e[2]/c_divisor[2] <= 0);
+            // std::cout<<mul<<" "<<c_e[0]<<" "<<c_divisor[0]<<" "<<c_e[1]<<" "<<c_divisor[1]<<" "<<c_e[2]<<" "<<c_divisor[2]<<" "<<std::endl;
+            cs.insert(mul/c_divisor[0]*c_e[0]*A + mul/c_divisor[1]*c_e[1]*B + mul/c_divisor[2]*c_e[2] <= 0);
+            // cs.insert(c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[0]/c_divisor[0]*A + c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[1]/c_divisor[1]*B + c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[2]/c_divisor[2] <= 0);
         
         }else if(para_size == 3){
 
-            cs.insert(mul*c_e[0]/c_divisor[0]*A + mul*c_e[1]/c_divisor[1]*B + mul*c_e[2]/c_divisor[2]*C + mul*c_e[3]/c_divisor[3] <= 0);
+            cs.insert(mul/c_divisor[0]*c_e[0]*A + mul/c_divisor[1]*c_e[1]*B + mul/c_divisor[2]*c_e[2]*C + mul/c_divisor[3]*c_e[3] <= 0);
         
         }else if(para_size == 4){
 
@@ -196,7 +232,13 @@ namespace TangtongPPL{
         }
 
     }
-    void iInsert(vector<string> cons,vector<string> paras){
+    void iInsert(vector<string> cons, vector<string> paras, int var_size){
+        //////////////////////
+        // std::cout<<"iInsert():"<<std::endl;
+        // for(int i = 0; i < cons.size(); i++){
+        //     std::cout<<cons[i]<<" ";
+        // }std::cout<<std::endl;
+        ////////////////////////
         for(int i = 0 ; i < cons.size() ; i++){
             for(int j = 0 ; j < cons[i].length() ; j++){
                 if(cons[i][j] == '-' || cons[i][j] == '<'){
@@ -204,15 +246,16 @@ namespace TangtongPPL{
                     j++;
                 }
             }
+            //std::cout<<cons[i]<<std::endl;;
             vector<string> coeff = DivideConstraints(cons[i],'+');
             // for(int j = 0 ; j < coeff.size()-1 ; j++)
-                // std::cout<<coeff[j]<<" ";
+            //     std::cout<<coeff[j]<<" ";
             // std::cout<<std::endl;
             int c_e[11] = {0},c_divisor[11] = {1,1,1,1,1,1, 1,1,1,1,1};
 
             for(int j = 0; j < coeff.size()-1 ; j++){
                 int tag=0;
-                for(int p = 0; p < paras.size() ; p++){
+                for(int p = 0; p <  var_size; p++){//1
                     int idx = coeff[j].find(paras[p]);
                     if(idx > -1){
                         int div_pos = coeff[j].find("/");
@@ -235,38 +278,82 @@ namespace TangtongPPL{
                 if(tag == 0){
                     int div_pos = coeff[j].find("/");
                     if(div_pos > -1){
-                        c_e[paras.size()] = atoi(coeff[j].substr(0,div_pos).c_str());
-                        c_divisor[paras.size()] = atoi(coeff[j].substr(div_pos+1,coeff[j].length()-div_pos-1).c_str());
+                        c_e[var_size] = atoi(coeff[j].substr(0,div_pos).c_str());
+                        c_divisor[var_size] = atoi(coeff[j].substr(div_pos+1,coeff[j].length()-div_pos-1).c_str());
                     }else{
-                        c_e[paras.size()] = atoi(coeff[j].c_str());
+                        c_e[var_size] = atoi(coeff[j].c_str());
                     }
                 }
             }
+            // std::cout<<"c_e c_divisor:"<<std::endl;
             // for(int j = 0 ; j < 10 ; j++){
             //     std::cout<<c_e[j]<<" "<<c_divisor[j]<<std::endl;
             // }
-            DoInsert(c_e,c_divisor,paras.size());
+            DoInsert(c_e,c_divisor,var_size);
         }
     }
 
-    void InsertCons(vector<string> cons,vector<string> paras){
-        AdjustCons(cons);
-        iInsert(cons,paras);
+
+/*
+ *      if cons have strict equalities like c[1]<1
+ *      then add a "=" after "<"
+ *      because ppl cannot handle strict equalities.
+ */
+    void AddEqu(vector<string> &cons){
+        for(int i = 0; i < cons.size(); i++){
+            int pos = 0;
+            pos = cons[i].find(">");
+            if(pos != string::npos && cons[i][pos+1] != '='){
+                cons[i].insert(pos+1, "=");
+            }
+            pos = cons[i].find("<");
+            if(pos != string::npos && cons[i][pos+1] != '='){
+                cons[i].insert(pos+1, "=");
+            }
+
+        }
     }
 
-    string InsertConstraints(string ch){
+    void InsertCons(vector<string> cons, vector<string> paras, int var_size){
+        // PrintStringVector(cons);
+        AddEqu(cons);
+        // PrintStringVector(cons);
+        AdjustCons(cons);
+        // PrintStringVector(cons);
+        iInsert(cons,paras,var_size);
+        //std::cout<<"cons:"<<cons.size()<<std::endl;
+    }
+
+    string InsertConstraints(string ch, string variables){
+        cs.initialize();
+        cs.clear();
         vector<string> cons,paras;
         string constraints = ch;
-
+        int var_size = DivideConstraints(variables,",").size();
         DeleteBlanks(constraints);
+        std::cout<<"constraints:"<<constraints<<endl;
         paras = GetParas(constraints);
         cons = DivideConstraints(constraints,',');
-        InsertCons(cons,paras);
-
+        /////////////////////
+        // for(int i = 0; i < paras.size(); i++){
+        //     std::cout<<paras[i]<<" ";
+        // }std::cout<<endl;
+        // for(int i = 0; i < cons.size(); i++){
+        //     std::cout<<cons[i]<<" ";
+        // }std::cout<<endl;
+        /////////////////////
+        InsertCons(cons,paras,var_size);
+        cs.print();std::cout<<std::endl;
         C_Polyhedron cp(cs);
+        //cp.initialize();cp.finalize();
         std::cout<<"Constraints System : ";cp.print();std::cout<<std::endl;;
-        Generator_System gs = cp.generators();
+        Generator_System gs = cp.generators();gs.finalize();
         std::cout<<"Generators : ";gs.print();std::cout<<std::endl;
+        cs.finalize();
+        if(gs.print_tt() == ""){
+            std::cout<<"Calculate Overflow."<<std::endl;
+            return "";
+        }
         return gs.print_tt();
     }
 
@@ -280,7 +367,7 @@ namespace TangtongPPL{
         There are taking this strategy.
     
      */
-    string ConstructGeneratorsConstraints(string gs_coeffs,string x,bool simply){
+    string ConstructGeneratorsConstraints(string gs_coeffs,string x){
         vector<string> v_gs_coeffs = DivideConstraints(gs_coeffs,"(C)");
         vector<string> v_x = DivideConstraints(x,',');
         int p_pos = 0;
@@ -309,7 +396,10 @@ namespace TangtongPPL{
         return f;
     }
 
-    string ConstructGeneratorsConstraints(string gs_coeffs, string variables, int cur_times){
+    string ConstructGeneratorsConstraints(string gs_coeffs, string variables, string k /* int cur_times */){
+        // std::cout<<"Start GS:"<<std::endl;
+        // std::cout<<"gs_coeffs:"<<gs_coeffs<<std::endl;
+        // std::cout<<"variables:"<<variables<<std::endl;
         vector<string> v_gs_coeffs = DivideConstraints(gs_coeffs,"(C)");
         vector<string> v_x = DivideConstraints(variables,',');
         vector<string> v_d_x;
@@ -320,11 +410,13 @@ namespace TangtongPPL{
         string ret1,ret2;
         for(int i = 0; i < v_gs_coeffs.size(); i++){
             vector<string> v_gs_coe = DivideConstraints(v_gs_coeffs[i],' ');
+            // PrintStringVector(v_gs_coe);
             if(v_gs_coe[v_gs_coe.size() - 1] == "P"){
                 for(int j = 0; j < v_x.size(); j++){
                     ret1 += "+(" + v_gs_coe[j+3] + "/" + v_gs_coe[2] + "*" + v_x[j] +")";
                 }
-                ret1 += ">=k" + to_string(cur_times) + ",";
+                // ret1 += ">=k" + to_string(cur_times) + ",";
+                ret1 += ">=" + k +",";
                 for(int j = 0; j < v_d_x.size(); j++){
                     ret2 += "+(" + v_gs_coe[j+3] + "/" + v_gs_coe[2] + "*" + v_d_x[j] +")";
                 }
@@ -340,6 +432,25 @@ namespace TangtongPPL{
                 }
                 ret2 += ">=0,";
             }
+            if(v_gs_coe[v_gs_coe.size() - 1] == "L"){
+                for(int j = 0; j < v_x.size(); j++){
+                    ret1 += "+(" + v_gs_coe[j+3] + "*" + v_x[j] + ")";
+                }
+                ret1 += ">=0,";
+                for(int j = 0; j < v_x.size(); j++){
+                    ret1 += "-(" + v_gs_coe[j+3] + "*" + v_x[j] + ")";
+                }
+                ret1 += ">=0,";
+
+                for(int j = 0; j < v_x.size(); j++){
+                    ret2 += "+(" + v_gs_coe[j+3] + "*" + v_d_x[j] + ")";
+                }
+                ret2 += ">=0,";
+                for(int j = 0; j < v_x.size(); j++){
+                    ret2 += "-(" + v_gs_coe[j+3] + "*" + v_d_x[j] + ")";
+                }
+                ret2 += ">=0,";
+            }
         }
         
 
@@ -348,6 +459,7 @@ namespace TangtongPPL{
         ret1 = "GS1 := {" + ret1 + "};";
         ret2.erase(ret2.size()-1);
         ret2 = "GS2 := {" + ret2 + "};";
+        // std::cout<<"Start GS:"<<std::endl;
         return ret1+ret2;
     }
     
@@ -391,12 +503,23 @@ namespace TangtongPPL{
         return ki;
     }
     
+    /*
+    if ret have only one resolution like {c1>=0,c2<=-1} then do nothing;
+    if ret have several resolutions like {`or`(`and`(c1<0,c2>=-1),`and`(c1>=0,c2<=1))} then only return c1<0,c2>=-1 because ppl cannot handle several resolutions
+    
+     */
     string AnalyzeFarkasRet(string ret){
         int pos = 0;
         if((pos = ret.find("`&and`")) == string::npos){
             return ret;//only one ret,return
         }else{
-            return "ret:=["+ret.substr(ret.find("(") + 1, ret.find(")") - ret.find("(") - 1)+"]";
+            int pos1 = 0, pos2 = 0;
+            pos2 = ret.find(")");
+            pos1 = pos2 - 1;
+            while(ret[pos1] != '('){
+                pos1--;
+            }
+            return ret.substr(pos1 + 1, pos2 - pos1 - 1);
         }
 
         return ret;

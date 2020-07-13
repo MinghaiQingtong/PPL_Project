@@ -80,32 +80,34 @@ namespace TangtongMaple{
         eqns:=LinearAlgebra:-GenerateEquations(S_eqnsMatrix,lambda,C_vector);\
         S_vector:=convert(S_vector,list);\
         S_vector:=matrix(1,nops(S_ineqns),S_vector);\
-        temp:=convert(linalg:-geneqns(S_vector,lambda,convert([1],vector))[1],lessequal);\
+        temp:=convert(linalg:-geneqns(S_vector,lambda,convert([-1],vector))[1],lessequal);\
         eqns:=`union`({temp},convert(eqns,set));\
         temp:=0;\
         for i from 1 to nops(S_ineqns) do\
-            temp:=temp+lambda[i];\
+           temp:=temp+lambda[i];\
         od;\
         temp:={temp>=1};\
-        eqns:=`union`(temp,eqns);\
+        \
         for i from 1 to nops(S_ineqns) do\
             temp:={lambda[i]>=0};\
             eqns:=`union`(temp,eqns);\
         od;\
+        eqns:=convert(eqns,list);\
         temp:=[seq(lambda[i],i=1..nops(S_ineqns))];\
-        print(temp); \
-        temp2:=`&and`(seq(eqns[i],i=1..nops(eqns)));\
-        print(temp2); \
-        f:=`&E`(temp),(temp2);\
-        print(\"f = \" + f);\
-        temp:=RegularChains:-SemiAlgebraicSetTools:-QuantifierElimination(f,output = rootof,optimization = false);\
-        temp:=convert(temp,list);\
-        return temp;\
+        temp:=[op(temp),op([seq(c[i],i=1..1/2*nops(x))])];\
+        temp:=RegularChains:-SemiAlgebraicSetTools:-LinearSolve(eqns,RegularChains:-PolynomialRing(temp),'projection'=1/2*nops(x));\
+        return convert(temp,set);\
         end proc;\
         ";
         strcpy(ch,str.c_str());
         return true;
-        
+        /*
+        temp2 := `&and`(seq(eqns[i], i = 1 .. nops(eqns)));\
+        f:=`&E`(temp),temp2;\
+        print(f);\
+        temp := RegularChains:-SemiAlgebraicSetTools:-QuantifierElimination(f, output = rootof, simplification = L4);\
+ 
+ */
         }
 
 
