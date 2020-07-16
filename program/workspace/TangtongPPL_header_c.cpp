@@ -701,6 +701,18 @@ namespace TangtongPPL{
         return Omega;
     }
 
+    string ConstructFixPCons(vector<string> variables){
+        string FixPCons = "";
+        if(variables.empty()){
+            return FixPCons;
+        }
+        for(int i = 0; i < variables.size(); i++){
+            FixPCons += variables[i] + "=" + variables[i] + "1,";
+        }
+        FixPCons.erase(FixPCons.end()-1);
+        return FixPCons;
+    }
+
 
 }
 #endif

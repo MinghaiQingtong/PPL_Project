@@ -37,7 +37,7 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
 	TangtongMaple::processFirstFarkasStatement(kv,maplestatement);
     processMapleStatement(kv, maplestatement, TangtongPPL::ConstructDeltaFromCons(LoopCons, Cons, variables));
     processMapleStatement(kv, maplestatement, TangtongPPL::ConstructOmega(LoopCons, Cons, variables));std::cout<<mapleresult<<std::endl;
-    processMapleStatement(kv,maplestatement,"Delta:=`union`(Delta,Omega);");    std::cout<<mapleresult<<std::endl;
+    processMapleStatement(kv, maplestatement,"Delta:=`union`(Delta,Omega);");    std::cout<<mapleresult<<std::endl;
     //processMapleStatement(kv, maplestatement, "k:=[];");
     string generators,GS,random_ei,LSVariable;
     LSVariable = TangtongPPL::ConstructAllVariablesFromVariables(variables,1);
@@ -46,7 +46,18 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
     const char *FarkasRetIsFalse = "{}";
     int cur_times = 1;
     const int ENDTIMES = 3;
-    string k = "-10";
+    string k = "10";
+
+    processMapleStatement(kv, maplestatement, "FixPCons:={"+ TangtongPPL::ConstructFixPCons(variables) +"};");std::cout<<mapleresult<<std::endl;
+    processMapleStatement(kv, maplestatement, "FixPCons:=`union`(FixPCons,Omega);");std::cout<<mapleresult<<std::endl;
+    processMapleStatement(kv, maplestatement, "RegularChains:-SemiAlgebraicSetTools:-LinearSolve(convert(FixPCons,'list'),\
+                                                PolynomialRing(["+ TangtongPPL::ConstructAllVariablesFromVariables(variables,0) +"]),\
+                                                'projection' = "+ to_string(2*variables.size()) +");\
+                                                ");
+    std::cout<<mapleresult<<std::endl;
+    if(mapleresult != "[]"){
+        return "False";
+    }
     while(cur_times <= ENDTIMES){
         std::cout<<"------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"The "<<cur_times<<"th Iteration..."<<std::endl;
@@ -55,7 +66,7 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
         std::cout<<mapleresult<<std::endl;
         
         if(mapleresult == FarkasRetIsFalse){
-            return "Delta has no solution. And there not exists an LRF over Omega.";
+            return "False2";//"Delta has no solution. And there not exists an LRF over Omega.";
         }
         
         string temp_str = TangtongPPL::AnalyzeFarkasRet(mapleresult);
@@ -89,14 +100,14 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
         
         if(mapleresult == "[]"){
             counter = cur_times;    
-            return "Delta has a solution. And there exists an LRF over Omega.";
+            return "True";//"Delta has a solution. And there exists an LRF over Omega.";
         }
         //processMapleStatement(kv, maplestatement, "k:=[op(k), k"+ to_string(cur_times) +"];");
         std::cout<<mapleresult<<std::endl;
         cur_times++;
     }
     counter = cur_times;
-    return "Delta has no solution. And there not exists an LRF over Omega.";
+    return "Unknown";//"Delta has no solution. And there not exists an LRF over Omega.";
 }
 
 void test(MKernelVector kv, char *maplestatement){
@@ -154,11 +165,12 @@ void test(MKernelVector kv, char *maplestatement){
         cout<<str<<endl;
         cout<<endl;
         ofs<<" counter="<<counter;
-        if(str == "Delta has a solution. And there exists an LRF over Omega."){
-            ofs<<" Exist LRF."<<endl;
-        }else{//"Delta has no solution. And there not exists an LRF over Omega."
-            ofs<<" Not Exit."<<endl;
-        }
+        ofs<<"  "<<str<<endl;
+        // if(str == "Delta has a solution. And there exists an LRF over Omega."){
+        //     ofs<<" Exist LRF."<<endl;
+        // }else{//"Delta has no solution. And there not exists an LRF over Omega."
+        //     ofs<<" Not Exit."<<endl;
+        // }
         
     }
     fs.close();
