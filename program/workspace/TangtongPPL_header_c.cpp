@@ -9,6 +9,7 @@
 #include <iostream>
 #include <time.h>
 #include <stdlib.h>
+#include <sstream>
 // using namespace std;
 
 
@@ -110,6 +111,7 @@ namespace TangtongPPL{
     void AdjustCons(vector<string> &cons){
         // std::cout<<"Start AdjustCons():"<<cons.size()<<std::endl;
         // PrintStringVector(cons);
+
         for(int i = 0 ; i < cons.size() ; i++){
             // std::cout<<"111";
             // std::cout<<"AdjustCons:"<<cons[i]<<" ";
@@ -174,18 +176,26 @@ namespace TangtongPPL{
     Constraint_System cs;
     void DoInsert(int c_e[],int c_divisor[],int para_size){
         // std::cout<<"DO INSERT : "<<para_size<<std::endl;
-        int mul = 1;
+        long mul = 1L;
+        std::cout<<"c_divisor : ";
         for(int i = 0 ; i <= para_size ; i++){
+            std::cout<<c_divisor[i]<<" ";
             mul*=c_divisor[i];
         }
+        std::cout<<std::endl;
         if(para_size == 1){
-        
             cs.insert(mul/c_divisor[0]*c_e[0]*A + mul/c_divisor[1]*c_e[1] <= 0);
-        
         }else if(para_size == 2){
+            // int tmp1 = c_divisor[1]*c_divisor[2]*c_e[0];
+            // int tmp2 = c_divisor[0]*c_divisor[2]*c_e[1];
+            // int tmp3 = c_divisor[0]*c_divisor[1]*c_e[2];
+            // std::cout<<tmp1<<" "<<tmp2<<" "<<tmp3<<std::endl;
+            // cs.insert(tmp1*A + tmp2*B + tmp3 <= 0);
             // std::cout<<mul<<" "<<c_e[0]<<" "<<c_divisor[0]<<" "<<c_e[1]<<" "<<c_divisor[1]<<" "<<c_e[2]<<" "<<c_divisor[2]<<" "<<std::endl;
+            std::cout<<"mul : "<<mul<<std::endl;
             cs.insert(mul/c_divisor[0]*c_e[0]*A + mul/c_divisor[1]*c_e[1]*B + mul/c_divisor[2]*c_e[2] <= 0);
             // cs.insert(c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[0]/c_divisor[0]*A + c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[1]/c_divisor[1]*B + c_divisor[0]*c_divisor[1]*c_divisor[2]*c_e[2]/c_divisor[2] <= 0);
+            // cs.insert(c_divisor[1]*c_divisor[2]*c_e[0]*A + c_divisor[0]*c_divisor[2]*c_e[1]*B + c_divisor[0]*c_divisor[1]*c_e[2] <= 0);
         
         }else if(para_size == 3){
 
@@ -239,6 +249,7 @@ namespace TangtongPPL{
         //     std::cout<<cons[i]<<" ";
         // }std::cout<<std::endl;
         ////////////////////////
+        stringstream ss;
         for(int i = 0 ; i < cons.size() ; i++){
             for(int j = 0 ; j < cons[i].length() ; j++){
                 if(cons[i][j] == '-' || cons[i][j] == '<'){
@@ -251,7 +262,7 @@ namespace TangtongPPL{
             // for(int j = 0 ; j < coeff.size()-1 ; j++)
             //     std::cout<<coeff[j]<<" ";
             // std::cout<<std::endl;
-            int c_e[11] = {0},c_divisor[11] = {1,1,1,1,1,1, 1,1,1,1,1};
+            int c_e[11] = {0}, c_divisor[11] = {1,1,1,1,1,1, 1,1,1,1,1};
 
             for(int j = 0; j < coeff.size()-1 ; j++){
                 int tag=0;
@@ -262,7 +273,9 @@ namespace TangtongPPL{
                         int mul_pos = coeff[j].find("*");
                         if(div_pos > -1 && mul_pos > -1){
                             c_e[p] = atoi(coeff[j].substr(0,div_pos).c_str());
+                            //ss << coeff[j].substr(div_pos+1,mul_pos-div_pos-1);//
                             c_divisor[p] = atoi(coeff[j].substr(div_pos+1,mul_pos-div_pos-1).c_str());
+                            //ss >> c_divisor[p];
                         }else if(div_pos == -1 && mul_pos > -1){
                             c_e[p] = atoi(coeff[j].substr(0,mul_pos).c_str());
                         }else{
@@ -279,7 +292,10 @@ namespace TangtongPPL{
                     int div_pos = coeff[j].find("/");
                     if(div_pos > -1){
                         c_e[var_size] = atoi(coeff[j].substr(0,div_pos).c_str());
+                        
+                        //ss << coeff[j].substr(div_pos+1,coeff[j].length()-div_pos-1);//
                         c_divisor[var_size] = atoi(coeff[j].substr(div_pos+1,coeff[j].length()-div_pos-1).c_str());
+                        //ss >> c_divisor[var_size];
                     }else{
                         c_e[var_size] = atoi(coeff[j].c_str());
                     }
@@ -287,7 +303,7 @@ namespace TangtongPPL{
             }
             // std::cout<<"c_e c_divisor:"<<std::endl;
             // for(int j = 0 ; j < 10 ; j++){
-            //     std::cout<<c_e[j]<<" "<<c_divisor[j]<<std::endl;
+                // std::cout<<c_e[j]<<" "<<c_divisor[j]<<std::endl;
             // }
             DoInsert(c_e,c_divisor,var_size);
         }
@@ -343,7 +359,7 @@ namespace TangtongPPL{
         // }std::cout<<endl;
         /////////////////////
         InsertCons(cons,paras,var_size);
-        cs.print();std::cout<<std::endl;
+        std::cout<<"cs.print():";cs.print();std::cout<<std::endl;
         C_Polyhedron cp(cs);
         //cp.initialize();cp.finalize();
         std::cout<<"Constraints System : ";cp.print();std::cout<<std::endl;;
@@ -591,7 +607,7 @@ namespace TangtongPPL{
     string ConstructDeltaPart1(vector<string> variables){
         string ret;
         for(int i = 0; i < variables.size(); i++){
-            ret += variables[i] + "1 -" + variables[i] + " = d" + variables[i] + ","; 
+            ret += variables[i] + "1-" + variables[i] + "=d" + variables[i] + ","; 
         }
         return ret;
     }
@@ -599,45 +615,27 @@ namespace TangtongPPL{
     construct A * dx + A1 * dx1 <= 0
  */
     string ConstructDeltaPart2(vector<string> Cons, vector<string> variables){
-
+        int pos1 = 0, pos2 = 0;
         for(int i = 0; i < Cons.size(); i++){
-            //Cons[i] = Cons[i] + " ";
-            //std::cout<<Cons[i]<<std::endl;
-            bool tag1_sym = true, tag2_num = false;
-            int start = 0;
             for(int j = 0; j < Cons[i].length(); j++){
-                if(Cons[i][j] >= '0' && Cons[i][j] <= '9'){
-                    tag2_num = true;
-                    continue;
-                }
-                if(Cons[i][j] == '+' || Cons[i][j] == '-' ||
-                 Cons[i][j] == '>' ||  Cons[i][j] == '<' ||
-                  Cons[i][j] == '=' || j == Cons[i].length() - 1){
-                      if(tag1_sym && tag2_num){
-                          //std::cout<<"1:"<<j<<std::endl;
-                          //std::cout<<start<<" "<<j<<std::endl;
-                            Cons[i].replace(start, j - start, "0");
-                           break;
-                      }else if(tag1_sym){
-                        //   tag = true;
-                          start = j + 1;
-                          //continue;
-                        //   std::cout<<"2:"<<j<<std::endl;
-                      }else if(tag2_num){
-                          tag2_num = false;
-                      }
-                      tag1_sym = true;
-                      start = j + 1;
-                }else if(Cons[i][j] == '*' || Cons[i][j] == '/' || (Cons[i][j] >= 'a' && Cons[i][j] <= 'z') ||
-                        (Cons[i][j] >= 'A' && Cons[i][j] <='Z') ){
-                    tag1_sym = false;
-                    // std::cout<<"3:"<<j<<std::endl;
+                // std::cout<<Cons[i]<<std::endl;
+                if(( Cons[i][j] >= '1' && Cons[i][j] <= '9' ) || Cons[i][j] == '/'){
+                    pos1 = j;
+                    pos2 = j + 1;
+                    while(pos2 < Cons[i].length() && Cons[i][pos2] >= '0' && Cons[i][pos2] <= '9'){
+                        pos2++;
+                    }
+                    if(pos2 == Cons[i].length()){
+                        Cons[i] = Cons[i].replace(pos1, pos2 - pos1, "0");
+                    }
                 }
             }
+
+
         }
         for(int i = 0; i < Cons.size(); i++){
             for(int j = 0; j < variables.size(); j++){
-                int pos1 = Cons[i].find(variables[j], 0);
+                pos1 = Cons[i].find(variables[j], 0);
                 if(pos1 != -1){
                     Cons[i].insert(pos1, "d");
                 }
@@ -669,8 +667,11 @@ namespace TangtongPPL{
 
         string Delta;
         Delta += ConstructDeltaPart1(variables);
+        std::cout<<Delta<<std::endl;
         Delta += ConstructDeltaPart2(Cons, variables);
+        std::cout<<Delta<<std::endl;
         Delta += ConstructDeltaPart2(LoopCons, variables);
+        std::cout<<Delta<<std::endl;
         Delta.erase(Delta.end() - 1);//delete end char','
         Delta = "Delta:={" + Delta + "};";
         // std::cout<<Delta<<std::endl;

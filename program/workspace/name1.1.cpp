@@ -38,15 +38,16 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
     processMapleStatement(kv, maplestatement, TangtongPPL::ConstructDeltaFromCons(LoopCons, Cons, variables));
     processMapleStatement(kv, maplestatement, TangtongPPL::ConstructOmega(LoopCons, Cons, variables));std::cout<<mapleresult<<std::endl;
     processMapleStatement(kv, maplestatement,"Delta:=`union`(Delta,Omega);");    std::cout<<mapleresult<<std::endl;
-    //processMapleStatement(kv, maplestatement, "k:=[];");
+    // return "";
     string generators,GS,random_ei,LSVariable;
     LSVariable = TangtongPPL::ConstructAllVariablesFromVariables(variables,1);
     processMapleStatement(kv, maplestatement, "LSVariable:=["+ TangtongPPL::ConstructAllVariablesFromVariables(variables,1) +"];");std::cout<<mapleresult<<std::endl;
 
+    
     const char *FarkasRetIsFalse = "{}";
     int cur_times = 1;
-    const int ENDTIMES = 3;
-    string k = "10";
+    const int ENDTIMES = 10;
+    string k = "1";
 
     processMapleStatement(kv, maplestatement, "FixPCons:={"+ TangtongPPL::ConstructFixPCons(variables) +"};");std::cout<<mapleresult<<std::endl;
     processMapleStatement(kv, maplestatement, "FixPCons:=`union`(FixPCons,Omega);");std::cout<<mapleresult<<std::endl;
@@ -54,10 +55,20 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
                                                 PolynomialRing(["+ TangtongPPL::ConstructAllVariablesFromVariables(variables,0) +"]),\
                                                 'projection' = "+ to_string(2*variables.size()) +");\
                                                 ");
-    std::cout<<mapleresult<<std::endl;
+    //std::cout<<mapleresult<<std::endl;
     if(mapleresult != "[]"){
+        counter = 0;
         return "False";
     }
+    processMapleStatement(kv, maplestatement, "RegularChains:-SemiAlgebraicSetTools:-LinearSolve(convert(Delta,'list'),\
+                                                PolynomialRing(LSVariable),\
+                                                'projection' = nops(LSVariable));");std::cout<<mapleresult<<std::endl;
+    if(mapleresult == "[]"){
+            counter = 0;    
+            return "True";//"Delta has a solution. And there exists an LRF over Omega.";
+    }
+
+
     while(cur_times <= ENDTIMES){
         std::cout<<"------------------------------------------------------------------------------"<<std::endl;
         std::cout<<"The "<<cur_times<<"th Iteration..."<<std::endl;
@@ -70,7 +81,7 @@ string ALG(MKernelVector kv, char *maplestatement, vector<string> LoopCons,vecto
         }
         
         string temp_str = TangtongPPL::AnalyzeFarkasRet(mapleresult);
-         std::cout<<"temp_str:"<<temp_str<<endl;
+        // std::cout<<"temp_str:"<<temp_str<<endl;
         
         generators = TangtongPPL::InsertConstraints(temp_str, TangtongPPL::ConstructAllVariablesFromVariables(variables,-1));
         // std::cout<<"generators:"<<generators<<std::endl;
@@ -178,6 +189,9 @@ void test(MKernelVector kv, char *maplestatement){
 
 }
 int main(int argc,char *argv[]){
+    clock_t start,end;
+    start = clock();
+
 	char err[2048];
 	char *maplestatement = new char[4096];
     MKernelVector kv;
@@ -187,6 +201,8 @@ int main(int argc,char *argv[]){
     kv = StartMaple(argc,argv,&cb,NULL,NULL,err);
 
     test(kv,maplestatement);
+    
+    StopMaple(kv);
     // vector<string> LoopCons,Cons,variables;
     // LoopCons.push_back("0 <= x");
     // LoopCons.push_back("x <= 100");
@@ -198,6 +214,7 @@ int main(int argc,char *argv[]){
     // variables.push_back("y");
 
 	// std::cout<<ALG(kv, maplestatement, LoopCons, Cons, variables)<<std::endl;
-	StopMaple(kv);
+	end = clock();
+    std::cout<<"Runtime:"<<(double)(end-start)/CLOCKS_PER_SEC<<"s."<<endl;
 	return 0;
 }
