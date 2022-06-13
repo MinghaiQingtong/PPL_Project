@@ -1,0 +1,200 @@
+
+
+
+44
+
+1	2 x>=0 y<=-1
+	2 y<=y-1 x<=x+y
+	2 x y
+
+2	1 x>=0
+	2 x<=x+y y<=-y-1
+	2 x y
+
+3	1 x>=-1
+	2 y<=y-1 x<=x+y
+	2 x y
+
+4	1 x>=1
+	2 x=y y=y-1
+	2 x y
+
+
+
+
+1	1 x>=0
+	1 x=-2*x+10
+	1 x
+
+2	1 x>=1
+	2 x=x+y y=y+z
+	3 x y z
+
+6	1 x<=-1
+	2 x=x+y y=y-1
+	2 x y
+
+7	1 x>=1
+	2 x=x+y y=-2*y
+	2 x y
+
+8	1 x<=y-1
+	2 x=x+y y=-2*y
+	2 x y
+
+9	1 x<=y-1
+	2 x=x+y 2*y=y
+	2 x y
+
+10	1 4*x-5*y>=1
+	2 x=2*x+4*y y=4*x
+	2 x y
+
+11	1 x<=4
+	2 x=x-y y=x+y
+	2 x y
+
+12	2 x>=1 y>=1
+	1 x=-2*x+10*y
+	2 x y
+
+13	1 x>=1
+	1 x=x+y
+	2 x y
+
+14	1 x<=9
+	2 x=-y y=y+1
+	2 x y
+
+15	1 x<=-1
+	3 x=x+z y=y+1 z=-2*y
+	3 x y z
+
+16	2 x>=1 x<=99
+	1 x>=2*x+10
+	1 x
+
+17	1 x>=2
+	1 -2*x=x
+	1 x
+
+18	1 x>=2
+	1 2*x<=x
+	1 x
+
+19	1 x>=1
+	1 2*x<=x
+	1 x	
+
+20	1 x>=1
+	2 x=x+y y=y-1
+	2 x y
+
+21	1 4*x+y>=1
+	2 x=-2*x+4*y y=4*x
+	2 x y
+
+22	2 x>=1 x<=y-1
+	2 x=2*x y=y+1
+	2 x y
+
+23	1 x>=1
+	2 x=x-2*y y=y+1
+	2 x y
+
+24	2 x>=1 x<=n-1
+	3 x=-x+y-5 y=2*y n=n
+	3 x y n
+
+25	2 x>=1 y<=-1
+	2 x=x+y y=y-1
+	2 x y
+
+26	1 x-y>=1
+	2 x=-x+y y=y+1
+	2 x y
+
+27	1 x>=1
+	2 x=y y=y-1
+	2 x y
+
+28	1 x>=1
+	2 x=x+y-5 y=-2*y
+	2 x y
+
+29	1 x+y>=1
+	2 x=x-1 y=-2*y
+	2 x y
+
+30	1 x>=y+1
+	3 x=x-y y>=1 y<=2
+	2 x y
+
+31	1 x>=1
+	2 x=x+y y=-y-1
+	2 x y
+
+32	1 x>=1
+	2 x=y y<=-y
+	2 x y
+
+33	1 x<=y-1
+	3 x=x+1 y=z z=z
+	3 x y z
+
+34	1 x>=1
+	3 x=x+y y=y+z z=z-1
+	3 x y z
+
+35	2 x+y>=0 x<=z
+	3 x=2*x+y y=y+1 z=z
+	3 x y z
+
+36	2 x>=1 x<=z
+	3 x=2*x+y y=y+1 z=z
+	3 x y z
+
+37	1 x>=0
+	3 x=x+y y=z z=-z-1
+	3 x y z
+
+38	1 x-y>=1
+	3 x=-x+y y=z z=z+1
+	3 x y z
+
+39	2 x>=1 x<=y-1
+	3 x>=2*x+1 y=z z=z
+	3 x y z
+
+40	2 x>=0 x+y>=0
+	3 x=x+y+z y=-z-1 z=z
+	3 x y z
+
+41	2 x+y>=0 x<=n 
+	4 x=2*x+y y=z z=z+1 n=n
+	4 x y z n
+
+1	1 x>=0
+	2 x<=x+y y<=y-1
+	2 x y
+
+2	1 x-z>=0
+	3 x<=x+y y<=y-z z>=z+1
+	3 x y z
+
+
+
+
+Input Template:
+1//all cases amount,1 means there are only 1 case
+2//cases' serial number		2/*  there are 2 inequalities  */	x+y>=0 x<=n
+				4/*  there are 4 inequalities  */ x=2*x+y y=z z=z+1 n=n
+				4/*  variables amount  */ x y z n
+
+
+
+
+
+
+
+
